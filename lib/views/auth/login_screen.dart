@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_do/app/routes/app_routes.dart';
 import 'package:smart_do/controllers/auth_controller.dart';
-import 'package:smart_do/widgets/loading_widgets.dart';
 
 class LoginScreen extends GetView<AuthController> {
   const LoginScreen({super.key});

@@ -24,11 +24,11 @@ class StatsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadStats();
+    loadStatsWithOffline();
   }
 
   // Charger les statistiques
-  Future<void> loadStats({bool refresh = false}) async {
+  Future<void> loadStatsWithOffline({bool refresh = false}) async {
     if (refresh) {
       isRefreshing.value = true;
     } else {
@@ -57,7 +57,7 @@ class StatsController extends GetxController {
         await _cacheService.cacheStats(newStats);
       }
     } catch (e) {
-      _snackbarService.showError('Erreur chargement statistiques');
+      print('❌ Erreur chargement statistiques: $e');
       _loadCachedStats();
     } finally {
       isLoading.value = false;
@@ -83,6 +83,8 @@ class StatsController extends GetxController {
       stats.value = cached;
       _initAnimatedValues(cached);
       _snackbarService.showInfo('Mode hors ligne - Données en cache');
+    } else {
+      _snackbarService.showError('Aucune donnée en cache');
     }
   }
 
@@ -115,7 +117,7 @@ class StatsController extends GetxController {
 
   // Rafraîchir les stats
   Future<void> refreshStats() async {
-    await loadStats(refresh: true);
+    await loadStatsWithOffline(refresh: true);
   }
 
   // Formater les stats pour les graphiques (à implémenter plus tard)

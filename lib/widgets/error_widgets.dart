@@ -112,26 +112,109 @@ class EmptyStateWidget extends StatelessWidget {
 }
 
 class OfflineBanner extends StatelessWidget {
-  const OfflineBanner({super.key});
+  final VoidCallback? onRetry;
+
+  const OfflineBanner({super.key, this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.orange,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wifi_off_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mode hors ligne',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Données en cache uniquement',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withOpacity(0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onRetry != null)
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.white.withOpacity(0.2),
+              ),
+              child: const Text('Réessayer'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget pour afficher l'âge du cache
+class CacheInfoBanner extends StatelessWidget {
+  final int cacheAgeMinutes;
+  final VoidCallback onRefresh;
+
+  const CacheInfoBanner({
+    super.key,
+    required this.cacheAgeMinutes,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      color: Colors.orange,
+      color: Colors.blue[50],
       child: Row(
         children: [
-          const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 20),
+          Icon(Icons.info_outline, size: 16, color: Colors.blue[700]),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Mode hors ligne - Données en cache',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
+              'Données mises en cache il y a ${cacheAgeMinutes} minute(s)',
+              style: TextStyle(color: Colors.blue[700], fontSize: 12),
             ),
+          ),
+          TextButton(
+            onPressed: onRefresh,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              minimumSize: Size.zero,
+            ),
+            child: const Text('Actualiser', style: TextStyle(fontSize: 12)),
           ),
         ],
       ),

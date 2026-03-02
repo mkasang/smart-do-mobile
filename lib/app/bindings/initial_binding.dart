@@ -9,16 +9,20 @@ import 'package:smart_do/app/theme/theme_controller.dart';
 class InitialBinding implements Bindings {
   @override
   void dependencies() {
-    // Services (singletons)
-    Get.put(ApiService(), permanent: true);
-    Get.put(AuthService(), permanent: true);
+    // 1. D'abord SnackbarService (car il est utilisé par ApiService)
     Get.put(SnackbarService(), permanent: true);
 
-    // Services asynchrones
+    // 2. Ensuite ApiService (qui dépend de SnackbarService)
+    Get.put(ApiService(), permanent: true);
+
+    // 3. Puis AuthService (qui dépend de ApiService)
+    Get.put(AuthService(), permanent: true);
+
+    // 4. Services asynchrones
     Get.putAsync<CacheService>(() async => await CacheService().init());
     Get.put(ConnectivityService(), permanent: true);
 
-    // Controllers globaux
+    // 5. Controllers globaux
     Get.put(ThemeController(), permanent: true);
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:smart_do/app/constants/app_constants.dart';
 import 'package:smart_do/app/routes/app_routes.dart';
 import 'package:smart_do/controllers/list_controller.dart';
+import 'package:smart_do/services/cache_service.dart';
 import 'package:smart_do/services/connectivity_service.dart';
 import 'package:smart_do/widgets/error_widgets.dart';
 import 'package:smart_do/widgets/loading_widgets.dart';
@@ -16,17 +18,14 @@ class DashboardScreen extends GetView<ListController> {
         title: const Text('Mes listes'),
         centerTitle: true,
         actions: [
-          // Bouton calendrier
           IconButton(
             icon: const Icon(Icons.calendar_today_rounded),
             onPressed: () => Get.toNamed(AppRoutes.calendar),
           ),
-          // Bouton statistiques
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
             onPressed: () => Get.toNamed(AppRoutes.stats),
           ),
-          // Bouton profil
           IconButton(
             icon: const Icon(Icons.person_rounded),
             onPressed: () => Get.toNamed(AppRoutes.profile),
@@ -36,7 +35,6 @@ class DashboardScreen extends GetView<ListController> {
           preferredSize: const Size.fromHeight(80),
           child: Column(
             children: [
-              // Barre de recherche
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
@@ -59,22 +57,46 @@ class DashboardScreen extends GetView<ListController> {
         ),
       ),
       body: Obx(() {
-        // Bannière hors ligne
-        if (!Get.find<ConnectivityService>().isConnected.value) {
-          return Column(
-            children: [
-              const OfflineBanner(),
-              Expanded(child: _buildBody()),
-            ],
-          );
-        }
-        return _buildBody();
+        final isConnected = Get.find<ConnectivityService>().isConnected.value;
+
+        return Column(
+          children: [
+            // Bannière hors ligne
+            if (!isConnected) const OfflineBanner(),
+
+            // Indicateur d'âge du cache (si connecté mais données en cache)
+            if (isConnected && controller.lists.isNotEmpty)
+              _buildCacheAgeBanner(),
+
+            // Contenu principal
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.refreshListsWithOffline,
+                child: _buildBody(),
+              ),
+            ),
+          ],
+        );
       }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed(AppRoutes.createList),
         icon: const Icon(Icons.add),
         label: const Text('Nouvelle liste'),
       ),
+    );
+  }
+
+  Widget _buildCacheAgeBanner() {
+    // Récupérer l'âge du cache
+    final cacheAge = Get.find<CacheService>().getCacheAge(
+      AppConstants.listsCacheKey,
+    );
+
+    if (cacheAge == null) return const SizedBox();
+
+    return CacheInfoBanner(
+      cacheAgeMinutes: cacheAge,
+      onRefresh: controller.refreshListsWithOffline,
     );
   }
 

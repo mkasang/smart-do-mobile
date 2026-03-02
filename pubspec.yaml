@@ -48,6 +48,8 @@ dependencies:
   # Stockage simple pour le cache local
   shared_preferences:
 
+  lottie:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

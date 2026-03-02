@@ -2,12 +2,16 @@ import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:smart_do/models/calendar_model.dart';
 import 'package:smart_do/services/api_service.dart';
+import 'package:smart_do/services/cache_service.dart';
+import 'package:smart_do/services/connectivity_service.dart';
 import 'package:smart_do/services/snackbar_service.dart';
 import 'package:smart_do/app/constants/api_endpoints.dart';
 
 class CalendarController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
-  final SnackbarService _snackbarService = Get.find<SnackbarService>();
+  late final ApiService _apiService;
+  late final CacheService _cacheService;
+  late final ConnectivityService _connectivityService;
+  late final SnackbarService _snackbarService;
 
   // États observables
   final calendarData = Rx<CalendarData?>(null);
@@ -24,6 +28,11 @@ class CalendarController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _apiService = Get.find<ApiService>();
+    _cacheService = Get.find<CacheService>();
+    _connectivityService = Get.find<ConnectivityService>();
+    _snackbarService = Get.find<SnackbarService>();
+
     loadCalendarData();
   }
 
@@ -32,6 +41,16 @@ class CalendarController extends GetxController {
     isLoading.value = true;
 
     try {
+      if (!_connectivityService.hasInternet) {
+        final cached = _cacheService.getCachedCalendarData(selectedDate.value);
+        if (cached != null) {
+          calendarData.value = cached;
+          _updateEvents();
+          _snackbarService.showInfo('Mode hors ligne - Données en cache');
+        }
+        return;
+      }
+
       final response = await _apiService.get<Map<String, dynamic>>(
         path: ApiEndpoints.calendar,
         queryParams: {'date': _formatDate(selectedDate.value)},
@@ -40,9 +59,25 @@ class CalendarController extends GetxController {
       if (response.success && response.data != null) {
         calendarData.value = CalendarData.fromJson(response.data!);
         _updateEvents();
+
+        // Sauvegarder en cache
+        if (calendarData.value != null) {
+          await _cacheService.cacheCalendarData(
+            selectedDate.value,
+            calendarData.value!,
+          );
+        }
       }
     } catch (e) {
-      _snackbarService.showError('Erreur chargement calendrier');
+      print('❌ Erreur chargement calendrier: $e');
+      final cached = _cacheService.getCachedCalendarData(selectedDate.value);
+      if (cached != null) {
+        calendarData.value = cached;
+        _updateEvents();
+        _snackbarService.showInfo('Mode hors ligne - Données en cache');
+      } else {
+        _snackbarService.showError('Erreur chargement calendrier');
+      }
     } finally {
       isLoading.value = false;
     }
@@ -84,7 +119,6 @@ class CalendarController extends GetxController {
 
     // Grouper les listes par date
     for (var list in calendarData.value!.lists) {
-      // Utiliser la date courante puisque l'API retourne les listes pour une date spécifique
       final date = DateTime(
         selectedDate.value.year,
         selectedDate.value.month,

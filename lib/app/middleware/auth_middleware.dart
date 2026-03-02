@@ -8,11 +8,33 @@ class AuthMiddleware extends GetMiddleware {
   RouteSettings? redirect(String? route) {
     final authService = Get.find<AuthService>();
 
-    // Si l'utilisateur n'est pas connecté, rediriger vers login
-    if (!authService.isLoggedIn) {
-      return const RouteSettings(name: AppRoutes.login);
+    // Attendre que l'initialisation soit terminée
+    if (!authService.isInitialized.value) {
+      print('⏳ AuthService pas encore initialisé...');
+      return null;
+    }
+
+    // Si l'utilisateur est connecté et essaie d'aller sur login/register
+    if (authService.isLoggedIn) {
+      if (route == AppRoutes.login || route == AppRoutes.register) {
+        print('🔄 Utilisateur connecté, redirection vers dashboard');
+        return const RouteSettings(name: AppRoutes.dashboard);
+      }
+    }
+    // Si l'utilisateur n'est pas connecté et essaie d'aller ailleurs que login/register
+    else {
+      if (route != AppRoutes.login && route != AppRoutes.register) {
+        print('🔒 Utilisateur non connecté, redirection vers login');
+        return const RouteSettings(name: AppRoutes.login);
+      }
     }
 
     return null;
+  }
+
+  @override
+  GetPage? onPageCalled(GetPage? page) {
+    print('📍 Navigation vers: ${page?.name}');
+    return page;
   }
 }
