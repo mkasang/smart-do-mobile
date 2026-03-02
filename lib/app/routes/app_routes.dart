@@ -8,4 +8,8 @@ class AppRoutes {
   static const String calendar = '/calendar';
   static const String stats = '/stats';
   static const String profile = '/profile';
+
+  // Routes avec paramètres
+  static String listDetailWithId(int id) => '$listDetail?id=$id';
+  static String shareListWithId(int id) => '$shareList?id=$id';
 }

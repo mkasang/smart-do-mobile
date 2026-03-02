@@ -32,6 +32,11 @@ class SmartDoApp extends StatelessWidget {
       defaultTransition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
 
+      // Middleware global
+      routingCallback: (routing) {
+        // Logique de routage si nécessaire
+      },
+
       // Gestion globale des erreurs
       builder: (context, child) {
         ErrorWidget.builder = (errorDetails) {
