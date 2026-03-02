@@ -90,7 +90,7 @@ class ListController extends GetxController {
         }
 
         // Filtrer les listes
-        _filterLists();
+        filterLists();
 
         // Sauvegarder en cache
         await _cacheService.cacheLists(lists);
@@ -182,7 +182,7 @@ class ListController extends GetxController {
       if (response.success && response.data != null) {
         final newList = ListModel.fromJson(response.data!['list']);
         lists.insert(0, newList);
-        _filterLists();
+        filterLists();
 
         _snackbarService.showSuccess('Liste créée avec succès');
         Get.back();
@@ -216,7 +216,7 @@ class ListController extends GetxController {
           currentList.value = updatedList;
         }
 
-        _filterLists();
+        filterLists();
         _snackbarService.showSuccess('Liste mise à jour');
       }
     } catch (e) {
@@ -237,7 +237,7 @@ class ListController extends GetxController {
 
       if (response.success) {
         lists.removeWhere((list) => list.id == listId);
-        _filterLists();
+        filterLists();
 
         _snackbarService.showSuccess('Liste supprimée');
 
@@ -261,7 +261,7 @@ class ListController extends GetxController {
       if (response.success && response.data != null) {
         final newList = ListModel.fromJson(response.data!['list']);
         lists.insert(0, newList);
-        _filterLists();
+        filterLists();
 
         _snackbarService.showSuccess('Liste dupliquée');
       }
@@ -291,7 +291,7 @@ class ListController extends GetxController {
   }
 
   // Filtrer les listes par statut
-  void _filterLists() {
+  void filterLists() {
     activeLists.value = lists.where((list) => list.isActive).toList();
     completedLists.value = lists.where((list) => list.isCompleted).toList();
   }
@@ -301,7 +301,7 @@ class ListController extends GetxController {
     final cached = _cacheService.getCachedLists();
     if (cached != null) {
       lists.value = cached;
-      _filterLists();
+      filterLists();
       _snackbarService.showInfo('Mode hors ligne - Données en cache');
     }
   }

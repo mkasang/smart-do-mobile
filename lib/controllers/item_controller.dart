@@ -171,7 +171,7 @@ class ItemController extends GetxController {
       }
 
       // Rafraîchir les filtres
-      _listController._filterLists();
+      _listController.filterLists();
     }
   }
 

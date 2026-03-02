@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialisation des services
-  await InitialBinding().dependencies();
+  InitialBinding().dependencies();
 
   runApp(const SmartDoApp());
 }
@@ -32,17 +32,16 @@ class SmartDoApp extends StatelessWidget {
       defaultTransition: Transition.rightToLeft,
       transitionDuration: const Duration(milliseconds: 300),
 
-      // Middleware global
-      routingCallback: (routing) {
-        // Logique de routage si nécessaire
-      },
+      // Supprimer routingCallback qui cause l'erreur
 
       // Gestion globale des erreurs
       builder: (context, child) {
         ErrorWidget.builder = (errorDetails) {
-          Get.find<SnackbarService>().showError(
-            'Une erreur inattendue est survenue',
-          );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.find<SnackbarService>().showError(
+              'Une erreur inattendue est survenue',
+            );
+          });
           return const SizedBox.shrink();
         };
         return child!;
